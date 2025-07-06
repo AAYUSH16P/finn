@@ -3,9 +3,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, FolderOpen, Calendar, Users, DollarSign, ArrowUpDown } from "lucide-react";
+import { FolderOpen, Calendar, Users, ArrowUpDown} from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import NewProjectDialog from "@/components/NewProjectDialog";
 
 const Projects = () => {
   const [sortBy, setSortBy] = useState("name");
@@ -93,10 +94,7 @@ const Projects = () => {
           <h1 className="text-3xl font-bold text-foreground">Projects</h1>
           <p className="text-muted-foreground">Manage your resource supply projects and track profitability</p>
         </div>
-        <Button className="bg-primary hover:bg-primary/90">
-          <Plus className="w-4 h-4 mr-2" />
-          New Project
-        </Button>
+        <NewProjectDialog />
       </div>
 
       {/* Sort Controls */}
