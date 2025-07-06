@@ -3,8 +3,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, User, Calendar, DollarSign, ArrowUpDown } from "lucide-react";
+import { User, Calendar, DollarSign, ArrowUpDown } from "lucide-react";
 import { useState } from "react";
+import NewResourceDialog from "@/components/NewResourceDialog";
 
 const Resources = () => {
   const [sortBy, setSortBy] = useState("name");
@@ -106,10 +107,7 @@ const Resources = () => {
           <h1 className="text-3xl font-bold text-foreground">Resources</h1>
           <p className="text-muted-foreground">Manage resource assignments and track earnings</p>
         </div>
-        <Button className="bg-primary hover:bg-primary/90">
-          <Plus className="w-4 h-4 mr-2" />
-          Add Resource
-        </Button>
+        <NewResourceDialog />
       </div>
 
       {/* Sort Controls */}
