@@ -1,15 +1,20 @@
-
 import { useParams, Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, User, Calendar, DollarSign, ArrowUpDown } from "lucide-react";
+import { ArrowLeft, User, Calendar, DollarSign, ArrowUpDown, Edit, Eye } from "lucide-react";
 import { useState } from "react";
+import RoleDialog from "@/components/RoleDialog";
+import RoleViewDialog from "@/components/RoleViewDialog";
 
 const ProjectDetails = () => {
   const { id } = useParams();
   const [sortBy, setSortBy] = useState("name");
+  const [roleDialogOpen, setRoleDialogOpen] = useState(false);
+  const [roleViewDialogOpen, setRoleViewDialogOpen] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<any>(null);
+  const [editingRole, setEditingRole] = useState<any>(null);
 
   // Mock data - in real app this would come from API based on project ID
   const project = {
@@ -19,10 +24,31 @@ const ProjectDetails = () => {
     status: "Active",
     startDate: "2024-01-15",
     endDate: "2024-06-30",
-    submittedRate: 1000,
-    basicRate: 820,
+    description: "Enterprise-level web application development with modern tech stack",
     cirProfit: 170,
     acrProfit: 40,
+    roles: [
+      {
+        id: "1",
+        roleName: "Senior Developer",
+        roleSpecification: "Full-stack development with React and Node.js",
+        dayRate: "800",
+        bau: "720",
+        saiven: "750",
+        spectrumProfit: "80",
+        basicRate: "650"
+      },
+      {
+        id: "2",
+        roleName: "Project Manager",
+        roleSpecification: "Agile project management and team coordination",
+        dayRate: "900",
+        bau: "820",
+        saiven: "850",
+        spectrumProfit: "100",
+        basicRate: "720"
+      }
+    ]
   };
 
   const projectResources = [
@@ -82,6 +108,30 @@ const ProjectDetails = () => {
     return profit >= 0 ? "text-finance-profit" : "text-finance-loss";
   };
 
+  const handleViewRole = (role: any) => {
+    setSelectedRole(role);
+    setRoleViewDialogOpen(true);
+  };
+
+  const handleEditRole = (role: any) => {
+    setEditingRole(role);
+    setRoleViewDialogOpen(false);
+    setRoleDialogOpen(true);
+  };
+
+  const handleAddRole = (role: any) => {
+    // Handle adding new role
+    console.log("Add role:", role);
+    setRoleDialogOpen(false);
+  };
+
+  const handleUpdateRole = (role: any) => {
+    // Handle updating existing role
+    console.log("Update role:", role);
+    setEditingRole(null);
+    setRoleDialogOpen(false);
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex items-center gap-4">
@@ -103,27 +153,65 @@ const ProjectDetails = () => {
           <CardTitle>Project Summary</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="space-y-4">
             <div>
-              <p className="text-sm text-muted-foreground">Duration</p>
-              <p className="font-medium">{project.startDate} - {project.endDate}</p>
+              <p className="text-sm text-muted-foreground">Project Description</p>
+              <p className="text-sm">{project.description}</p>
             </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Submitted Rate</p>
-              <p className="font-mono font-medium">${project.submittedRate}</p>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div>
+                <p className="text-sm text-muted-foreground">Duration</p>
+                <p className="font-medium">{project.startDate} - {project.endDate}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Overall Profit</p>
+                <p className={`font-mono font-medium ${getProfitColor(project.cirProfit + project.acrProfit)}`}>
+                  ${project.cirProfit + project.acrProfit}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">CIR Profit</p>
+                <p className={`font-mono font-medium ${getProfitColor(project.cirProfit)}`}>
+                  ${project.cirProfit}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">ACR Profit</p>
+                <p className={`font-mono font-medium ${getProfitColor(project.acrProfit)}`}>
+                  ${project.acrProfit}
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm text-muted-foreground">CIR Profit</p>
-              <p className={`font-mono font-medium ${getProfitColor(project.cirProfit)}`}>
-                ${project.cirProfit}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">ACR Profit</p>
-              <p className={`font-mono font-medium ${getProfitColor(project.acrProfit)}`}>
-                ${project.acrProfit}
-              </p>
-            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Project Roles */}
+      <Card className="bg-card/50 backdrop-blur-sm">
+        <CardHeader>
+          <CardTitle>Project Roles ({project.roles.length})</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4">
+            {project.roles.map((role) => (
+              <div key={role.id} className="flex items-center justify-between p-4 border rounded-lg">
+                <div>
+                  <h4 className="font-medium">{role.roleName}</h4>
+                  <p className="text-sm text-muted-foreground">{role.roleSpecification}</p>
+                  <p className="text-sm text-muted-foreground">Day Rate: ${role.dayRate}</p>
+                </div>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={() => handleViewRole(role)}>
+                    <Eye className="w-4 h-4 mr-2" />
+                    View Details
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => handleEditRole(role)}>
+                    <Edit className="w-4 h-4 mr-2" />
+                    Edit
+                  </Button>
+                </div>
+              </div>
+            ))}
           </div>
         </CardContent>
       </Card>
@@ -235,6 +323,20 @@ const ProjectDetails = () => {
           </div>
         )}
       </div>
+
+      <RoleDialog 
+        open={roleDialogOpen} 
+        onOpenChange={setRoleDialogOpen} 
+        onAddRole={editingRole ? handleUpdateRole : handleAddRole}
+        existingRole={editingRole}
+      />
+      
+      <RoleViewDialog 
+        open={roleViewDialogOpen}
+        onOpenChange={setRoleViewDialogOpen}
+        role={selectedRole}
+        onEdit={handleEditRole}
+      />
     </div>
   );
 };

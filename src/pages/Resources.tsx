@@ -1,11 +1,10 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { User, Calendar, DollarSign, ArrowUpDown } from "lucide-react";
 import { useState } from "react";
-import NewResourceDialog from "@/components/NewResourceDialog";
+import { Button } from "@/components/ui/button";
+import MultiStepResourceDialog from "@/components/MultiStepResourceDialog";
 
 const Resources = () => {
   const [sortBy, setSortBy] = useState("name");
@@ -15,10 +14,12 @@ const Resources = () => {
       id: 1,
       name: "John Smith",
       project: "Project Alpha",
+      role: "Senior Developer",
       type: "CIR",
       dailyRate: 650,
       workingDays: 120,
       earnings: 78000,
+      profit: 200,
       startDate: "2024-01-15",
       endDate: "2024-06-30",
     },
@@ -26,10 +27,12 @@ const Resources = () => {
       id: 2,
       name: "Sarah Johnson",
       project: "Project Beta", 
+      role: "Project Manager",
       type: "ACR",
       dailyRate: 780,
       workingDays: 95,
       earnings: 74100,
+      profit: 150,
       startDate: "2024-02-01",
       endDate: "2024-08-15",
     },
@@ -37,10 +40,12 @@ const Resources = () => {
       id: 3,
       name: "Mike Chen",
       project: "Project Alpha",
+      role: "QA Engineer", 
       type: "Reference",
       dailyRate: 700,
       workingDays: 80,
       earnings: 56000,
+      profit: -100,
       startDate: "2024-03-01",
       endDate: "2024-07-31",
     },
@@ -48,10 +53,12 @@ const Resources = () => {
       id: 4,
       name: "Emily Davis",
       project: "Project Gamma",
+      role: "Senior Developer",
       type: "CIR",
       dailyRate: 720,
       workingDays: 110,
       earnings: 79200,
+      profit: 300,
       startDate: "2024-01-20",
       endDate: "2024-07-15",
     },
@@ -59,10 +66,12 @@ const Resources = () => {
       id: 5,
       name: "Robert Wilson",
       project: "Project Beta",
+      role: "Project Manager",
       type: "ACR",
       dailyRate: 800,
       workingDays: 90,
       earnings: 72000,
+      profit: 100,
       startDate: "2024-02-15",
       endDate: "2024-08-30",
     },
@@ -107,7 +116,7 @@ const Resources = () => {
           <h1 className="text-3xl font-bold text-foreground">Resources</h1>
           <p className="text-muted-foreground">Manage resource assignments and track earnings</p>
         </div>
-        <NewResourceDialog />
+        <MultiStepResourceDialog />
       </div>
 
       {/* Sort Controls */}
@@ -141,7 +150,7 @@ const Resources = () => {
                     <User className="w-5 h-5" />
                     {resource.name}
                   </CardTitle>
-                  <CardDescription>{resource.project}</CardDescription>
+                  <CardDescription>{resource.project} • {resource.role}</CardDescription>
                 </div>
                 <Badge className={getTypeColor(resource.type)}>
                   {resource.type}
@@ -193,6 +202,12 @@ const Resources = () => {
                     <p className="text-xs text-muted-foreground mt-1">
                       ${resource.dailyRate} × {resource.workingDays} days
                     </p>
+                    <div className="text-xs mt-1">
+                      <span className="text-muted-foreground">Profit: </span>
+                      <span className={resource.profit >= 0 ? "text-finance-profit" : "text-finance-loss"}>
+                        ${resource.profit}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
@@ -200,12 +215,12 @@ const Resources = () => {
                 <div className="space-y-2">
                   <h4 className="text-sm font-medium text-muted-foreground">Actions</h4>
                   <div className="space-y-2">
-                    <Button variant="outline" size="sm" className="w-full">
-                      Edit Assignment
-                    </Button>
-                    <Button variant="outline" size="sm" className="w-full">
-                      View Timeline
-                    </Button>
+                     <Button variant="outline" size="sm" className="w-full">
+                       Edit Resource
+                     </Button>
+                     <Button variant="outline" size="sm" className="w-full">
+                       View Timeline
+                     </Button>
                   </div>
                 </div>
               </div>
