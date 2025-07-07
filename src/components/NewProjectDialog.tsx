@@ -5,46 +5,76 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Plus } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Plus, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import RoleDialog from "./RoleDialog";
 
-const NewProjectDialog = () => {
+interface Role {
+  id: string;
+  roleName: string;
+  roleSpecification: string;
+  dayRate: string;
+  bau: string;
+  saiven: string;
+  spectrumProfit: string;
+  basicRate: string;
+}
+
+interface NewProjectDialogProps {
+  isEdit?: boolean;
+  existingData?: any;
+  trigger?: React.ReactNode;
+}
+
+const NewProjectDialog = ({ isEdit = false, existingData, trigger }: NewProjectDialogProps) => {
   const [open, setOpen] = useState(false);
+  const [roleDialogOpen, setRoleDialogOpen] = useState(false);
+  const [roles, setRoles] = useState<Role[]>(existingData?.roles || []);
   const [formData, setFormData] = useState({
-    projectName: "",
-    teamName: "",
-    clientName: "",
-    description: "",
-    startDate: "",
-    endDate: "",
-    submittedRate: "",
-    basicRate: "",
-    status: "Active"
+    projectName: existingData?.projectName || "",
+    teamName: existingData?.teamName || "",
+    clientName: existingData?.clientName || "",
+    description: existingData?.description || "",
+    startDate: existingData?.startDate || "",
+    endDate: existingData?.endDate || "",
+    status: existingData?.status || "Active"
   });
   const { toast } = useToast();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    console.log("New project data:", formData);
+    // Here you would typically save the project data
+    console.log("Project data:", { ...formData, roles });
     
     toast({
-      title: "Project Created",
-      description: `${formData.projectName} has been successfully created.`,
+      title: isEdit ? "Project Updated" : "Project Created",
+      description: `${formData.projectName} has been successfully ${isEdit ? "updated" : "created"}.`,
     });
-
-    setFormData({
-      projectName: "",
-      teamName: "",
-      clientName: "",
-      description: "",
-      startDate: "",
-      endDate: "",
-      submittedRate: "",
-      basicRate: "",
-      status: "Active"
-    });
+    
+    // Reset form and close dialog only if not editing
+    if (!isEdit) {
+      setFormData({
+        projectName: "",
+        teamName: "",
+        clientName: "",
+        description: "",
+        startDate: "",
+        endDate: "",
+        status: "Active"
+      });
+      setRoles([]);
+    }
     setOpen(false);
+  };
+
+  const handleAddRole = (role: Role) => {
+    setRoles(prev => [...prev, role]);
+  };
+
+  const handleRemoveRole = (roleId: string) => {
+    setRoles(prev => prev.filter(role => role.id !== roleId));
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -52,18 +82,25 @@ const NewProjectDialog = () => {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="bg-primary hover:bg-primary/90">
-          <Plus className="w-4 h-4 mr-2" />
-          New Project
-        </Button>
-      </DialogTrigger>
+    <>
+      <Dialog open={open} onOpenChange={setOpen}>
+        {trigger ? (
+          <DialogTrigger asChild>
+            {trigger}
+          </DialogTrigger>
+        ) : (
+          <DialogTrigger asChild>
+            <Button className="bg-primary hover:bg-primary/90">
+              <Plus className="w-4 h-4 mr-2" />
+              New Project
+            </Button>
+          </DialogTrigger>
+        )}
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Create New Project</DialogTitle>
+          <DialogTitle>{isEdit ? "Edit Project" : "Create New Project"}</DialogTitle>
           <DialogDescription>
-            Add a new project to your workspace. Fill in the details below.
+            {isEdit ? "Update project details below." : "Add a new project to your portfolio. Fill in the details below."}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -124,7 +161,7 @@ const NewProjectDialog = () => {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="endDate">Expected End Date *</Label>
+              <Label htmlFor="endDate">End Date *</Label>
               <Input
                 id="endDate"
                 type="date"
@@ -135,29 +172,51 @@ const NewProjectDialog = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="submittedRate">Submitted Rate ($) *</Label>
-              <Input
-                id="submittedRate"
-                type="number"
-                value={formData.submittedRate}
-                onChange={(e) => handleInputChange("submittedRate", e.target.value)}
-                placeholder="0"
-                required
-              />
+          {/* Roles Section */}
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <Label>Project Roles</Label>
+              <Button 
+                type="button" 
+                variant="outline" 
+                size="sm"
+                onClick={() => setRoleDialogOpen(true)}
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Role
+              </Button>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="basicRate">Basic Rate ($) *</Label>
-              <Input
-                id="basicRate"
-                type="number"
-                value={formData.basicRate}
-                onChange={(e) => handleInputChange("basicRate", e.target.value)}
-                placeholder="0"
-                required
-              />
-            </div>
+            
+            {isEdit && (
+              <div className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-md">
+                Note: You can only add new roles here. To edit existing roles, go to the project view details page.
+              </div>
+            )}
+            
+            {roles.length > 0 && (
+              <div className="space-y-2 max-h-32 overflow-y-auto border rounded-md p-2">
+                {roles.map((role) => (
+                  <div key={role.id} className="flex items-center justify-between bg-muted/50 p-2 rounded">
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline">{role.roleName}</Badge>
+                      {role.roleSpecification && (
+                        <span className="text-sm text-muted-foreground">
+                          - {role.roleSpecification}
+                        </span>
+                      )}
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleRemoveRole(role.id)}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -179,12 +238,19 @@ const NewProjectDialog = () => {
               Cancel
             </Button>
             <Button type="submit">
-              Create Project
+              {isEdit ? "Update Project" : "Create Project"}
             </Button>
           </div>
         </form>
       </DialogContent>
     </Dialog>
+    
+    <RoleDialog 
+      open={roleDialogOpen}
+      onOpenChange={setRoleDialogOpen}
+      onAddRole={handleAddRole}
+    />
+    </>
   );
 };
 

@@ -1,15 +1,17 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FolderOpen, Calendar, Users, ArrowUpDown} from "lucide-react";
+import { FolderOpen, Calendar, Users, ArrowUpDown, UserCheck, Edit } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 import NewProjectDialog from "@/components/NewProjectDialog";
+import AttendanceDialog from "@/components/AttendanceDialog";
 
 const Projects = () => {
   const [sortBy, setSortBy] = useState("name");
+  const [attendanceDialogOpen, setAttendanceDialogOpen] = useState(false);
+  const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
 
   const projects = [
     {
@@ -19,8 +21,6 @@ const Projects = () => {
       status: "Active",
       startDate: "2024-01-15",
       endDate: "2024-06-30",
-      submittedRate: 1000,
-      basicRate: 820,
       cirProfit: 170,
       acrProfit: 40,
       resources: 3,
@@ -32,8 +32,6 @@ const Projects = () => {
       status: "Active",
       startDate: "2024-02-01",
       endDate: "2024-08-15",
-      submittedRate: 850,
-      basicRate: 695,
       cirProfit: 95,
       acrProfit: -25,
       resources: 2,
@@ -45,8 +43,6 @@ const Projects = () => {
       status: "Completed",
       startDate: "2023-10-01",
       endDate: "2024-03-31",
-      submittedRate: 1200,
-      basicRate: 980,
       cirProfit: 230,
       acrProfit: 80,
       resources: 4,
@@ -59,8 +55,8 @@ const Projects = () => {
         return a.name.localeCompare(b.name);
       case "client":
         return a.client.localeCompare(b.client);
-      case "submittedRate":
-        return b.submittedRate - a.submittedRate;
+      case "overallProfit":
+        return (b.cirProfit + b.acrProfit) - (a.cirProfit + a.acrProfit);
       case "cirProfit":
         return b.cirProfit - a.cirProfit;
       case "status":
@@ -87,6 +83,11 @@ const Projects = () => {
     return profit >= 0 ? "text-finance-profit" : "text-finance-loss";
   };
 
+  const handleMarkAttendance = (projectId: number) => {
+    setSelectedProjectId(projectId);
+    setAttendanceDialogOpen(true);
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex justify-between items-center">
@@ -109,7 +110,7 @@ const Projects = () => {
             <SelectContent>
               <SelectItem value="name">Name (A-Z)</SelectItem>
               <SelectItem value="client">Client (A-Z)</SelectItem>
-              <SelectItem value="submittedRate">Rate (High-Low)</SelectItem>
+              <SelectItem value="overallProfit">Overall Profit (High-Low)</SelectItem>
               <SelectItem value="cirProfit">CIR Profit (High-Low)</SelectItem>
               <SelectItem value="status">Status</SelectItem>
               <SelectItem value="resources">Resources (High-Low)</SelectItem>
@@ -136,7 +137,7 @@ const Projects = () => {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {/* Project Details */}
                 <div className="space-y-2">
                   <h4 className="text-sm font-medium text-muted-foreground">Project Details</h4>
@@ -148,21 +149,6 @@ const Projects = () => {
                     <div className="flex items-center gap-2 text-sm">
                       <Users className="w-3 h-3" />
                       <span>{project.resources} resources</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Rate Information */}
-                <div className="space-y-2">
-                  <h4 className="text-sm font-medium text-muted-foreground">Rates</h4>
-                  <div className="space-y-1">
-                    <div className="flex justify-between text-sm">
-                      <span>Submitted:</span>
-                      <span className="font-mono">${project.submittedRate}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span>Basic:</span>
-                      <span className="font-mono text-primary">${project.basicRate}</span>
                     </div>
                   </div>
                 </div>
@@ -183,6 +169,12 @@ const Projects = () => {
                         ${project.acrProfit}
                       </span>
                     </div>
+                    <div className="flex justify-between text-sm font-medium border-t pt-1">
+                      <span>Overall Profit:</span>
+                      <span className={`font-mono ${getProfitColor(project.cirProfit + project.acrProfit)}`}>
+                        ${project.cirProfit + project.acrProfit}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
@@ -190,14 +182,30 @@ const Projects = () => {
                 <div className="space-y-2">
                   <h4 className="text-sm font-medium text-muted-foreground">Actions</h4>
                   <div className="space-y-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full"
+                      onClick={() => handleMarkAttendance(project.id)}
+                    >
+                      <UserCheck className="w-4 h-4 mr-2" />
+                      Mark Attendance
+                    </Button>
                     <Link to={`/projects/${project.id}`}>
                       <Button variant="outline" size="sm" className="w-full">
                         View Details
                       </Button>
                     </Link>
-                    <Button variant="outline" size="sm" className="w-full">
-                      Edit Project
-                    </Button>
+                    <NewProjectDialog 
+                      isEdit={true}
+                      existingData={project}
+                      trigger={
+                        <Button variant="outline" size="sm" className="w-full">
+                          <Edit className="w-4 h-4 mr-2" />
+                          Edit Project
+                        </Button>
+                      }
+                    />
                   </div>
                 </div>
               </div>
@@ -205,6 +213,12 @@ const Projects = () => {
           </Card>
         ))}
       </div>
+      
+      <AttendanceDialog 
+        open={attendanceDialogOpen}
+        onOpenChange={setAttendanceDialogOpen}
+        projectId={selectedProjectId || 0}
+      />
     </div>
   );
 };
