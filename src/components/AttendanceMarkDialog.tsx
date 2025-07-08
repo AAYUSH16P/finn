@@ -1,56 +1,37 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { CalendarIcon, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { DateRange } from "react-day-picker";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import { DateRange } from "react-day-picker";
 
-interface Resource {
-  id: number;
-  name: string;
-}
-
-interface AttendanceDialogProps {
+interface AttendanceMarkDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  projectId: number;
+  selectedDate?: Date;
+  resourceName: string;
 }
 
-const AttendanceDialog = ({ open, onOpenChange, projectId }: AttendanceDialogProps) => {
-  const resources: Resource[] = [
-    { id: 1, name: "John Smith" },
-    { id: 2, name: "Sarah Johnson" },
-    { id: 3, name: "Mike Wilson" },
-    { id: 4, name: "Emily Davis" },
-  ];
-
-  const [attendanceStatus, setAttendanceStatus] = useState<Record<number, boolean>>(
-    resources.reduce((acc, resource) => ({ ...acc, [resource.id]: true }), {})
-  );
-  
-  // Single day selection
+const AttendanceMarkDialog = ({ open, onOpenChange, resourceName }: AttendanceMarkDialogProps) => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const [timeIn, setTimeIn] = useState("09:00");
-  const [timeOut, setTimeOut] = useState("17:00");
-  
-  // Date range selection
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: new Date(),
     to: undefined,
   });
-  
-  const [comment, setComment] = useState("");
   const [attendanceMode, setAttendanceMode] = useState("single");
-  
+  const [attendanceStatus, setAttendanceStatus] = useState("present");
+  const [comment, setComment] = useState("");
+  const [timeIn, setTimeIn] = useState("09:00");
+  const [timeOut, setTimeOut] = useState("17:00");
   const { toast } = useToast();
 
   const timeOptions = Array.from({ length: 24 * 2 }, (_, i) => {
@@ -59,14 +40,7 @@ const AttendanceDialog = ({ open, onOpenChange, projectId }: AttendanceDialogPro
     return `${hours.toString().padStart(2, "0")}:${minutes}`;
   });
 
-  const handleAttendanceChange = (resourceId: number, isPresent: boolean) => {
-    setAttendanceStatus(prev => ({ ...prev, [resourceId]: isPresent }));
-  };
-
   const handleSubmit = () => {
-    const presentCount = Object.values(attendanceStatus).filter(Boolean).length;
-    const totalCount = resources.length;
-    
     let dateText = "";
     if (attendanceMode === "single" && selectedDate) {
       dateText = format(selectedDate, "MMMM d, yyyy");
@@ -78,7 +52,7 @@ const AttendanceDialog = ({ open, onOpenChange, projectId }: AttendanceDialogPro
     
     toast({
       title: "Attendance Marked",
-      description: `Attendance marked for ${presentCount}/${totalCount} resources on ${dateText}.`,
+      description: `Attendance marked on ${dateText}.`,
     });
     
     onOpenChange(false);
@@ -87,17 +61,18 @@ const AttendanceDialog = ({ open, onOpenChange, projectId }: AttendanceDialogPro
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Mark Attendance</DialogTitle>
+          <DialogTitle>Mark Attendance - {resourceName}</DialogTitle>
           <DialogDescription>
-            Select date(s), time, and mark attendance for project resources.
+            Select date, status, and add any comments for attendance tracking.
           </DialogDescription>
         </DialogHeader>
         
         <div className="space-y-6">
-          {/* Date Selection Mode */}
-          <Tabs value={attendanceMode} onValueChange={setAttendanceMode}>
+          {/* Date Selection */}
+          <div className="space-y-2">
+            <Tabs value={attendanceMode} onValueChange={setAttendanceMode}>
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="single">Single Day</TabsTrigger>
               <TabsTrigger value="range">Date Range</TabsTrigger>
@@ -174,71 +149,78 @@ const AttendanceDialog = ({ open, onOpenChange, projectId }: AttendanceDialogPro
               </div>
             </TabsContent>
           </Tabs>
-
-          {/* Time Selection */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2">
-                <Clock className="w-4 h-4" />
-                Time In
-              </Label>
-              <Select value={timeIn} onValueChange={setTimeIn}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="max-h-48">
-                  {timeOptions.map((time) => (
-                    <SelectItem key={time} value={time}>
-                      {time}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2">
-                <Clock className="w-4 h-4" />
-                Time Out
-              </Label>
-              <Select value={timeOut} onValueChange={setTimeOut}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="max-h-48">
-                  {timeOptions.map((time) => (
-                    <SelectItem key={time} value={time}>
-                      {time}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
           </div>
 
-          {/* Resource Selection */}
+          {/* Attendance Status */}
           <div className="space-y-3">
-            <Label>Select Resources</Label>
-            <div className="space-y-3 max-h-32 overflow-y-auto">
-              {resources.map((resource) => (
-                <div key={resource.id} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`resource-${resource.id}`}
-                    checked={attendanceStatus[resource.id]}
-                    onCheckedChange={(checked) => 
-                      handleAttendanceChange(resource.id, checked as boolean)
-                    }
-                  />
-                  <Label
-                    htmlFor={`resource-${resource.id}`}
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                  >
-                    {resource.name}
-                  </Label>
-                </div>
-              ))}
-            </div>
+            <Label>Attendance Status</Label>
+            <RadioGroup value={attendanceStatus} onValueChange={setAttendanceStatus}>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="present" id="present" />
+                <Label htmlFor="present" className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded bg-finance-profit/30"></div>
+                  Present
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="absent" id="absent" />
+                <Label htmlFor="absent" className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded bg-finance-loss/30"></div>
+                  Absent
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="na" id="na" />
+                <Label htmlFor="na" className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded bg-finance-warning/30"></div>
+                  N/A (Holiday/Leave)
+                </Label>
+              </div>
+            </RadioGroup>
           </div>
+
+          {/* Time Selection (only for present status) */}
+          {attendanceStatus === "present" && (
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <Clock className="w-4 h-4" />
+                  Time In
+                </Label>
+                <Select value={timeIn} onValueChange={setTimeIn}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-48">
+                    {timeOptions.map((time) => (
+                      <SelectItem key={time} value={time}>
+                        {time}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <Clock className="w-4 h-4" />
+                  Time Out
+                </Label>
+                <Select value={timeOut} onValueChange={setTimeOut}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-48">
+                    {timeOptions.map((time) => (
+                      <SelectItem key={time} value={time}>
+                        {time}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
 
           {/* Comments */}
           <div className="space-y-2">
@@ -266,4 +248,4 @@ const AttendanceDialog = ({ open, onOpenChange, projectId }: AttendanceDialogPro
   );
 };
 
-export default AttendanceDialog;
+export default AttendanceMarkDialog;

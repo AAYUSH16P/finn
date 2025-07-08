@@ -4,10 +4,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { User, Calendar, DollarSign, ArrowUpDown } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 import MultiStepResourceDialog from "@/components/MultiStepResourceDialog";
 
 const Resources = () => {
   const [sortBy, setSortBy] = useState("name");
+  const [editingResource, setEditingResource] = useState<any>(null);
 
   const resources = [
     {
@@ -142,7 +144,7 @@ const Resources = () => {
 
       <div className="grid gap-6">
         {sortedResources.map((resource) => (
-          <Card key={resource.id} className="bg-card/50 backdrop-blur-sm hover:bg-card/70 transition-all duration-200">
+          <Card key={resource.id} className="bg-card/50 backdrop-blur-sm profit-glow hover:bg-card/70 transition-all duration-200">
             <CardHeader>
               <div className="flex justify-between items-start">
                 <div>
@@ -211,16 +213,23 @@ const Resources = () => {
                   </div>
                 </div>
 
-                {/* Actions */}
+                 {/* Actions */}
                 <div className="space-y-2">
                   <h4 className="text-sm font-medium text-muted-foreground">Actions</h4>
                   <div className="space-y-2">
-                     <Button variant="outline" size="sm" className="w-full">
+                     <Button 
+                       variant="outline" 
+                       size="sm" 
+                       className="w-full"
+                       onClick={() => setEditingResource(resource)}
+                     >
                        Edit Resource
                      </Button>
-                     <Button variant="outline" size="sm" className="w-full">
-                       View Timeline
-                     </Button>
+                     <Link to={`/resources/${resource.id}/timeline`}>
+                       <Button variant="outline" size="sm" className="w-full">
+                         View Timeline
+                       </Button>
+                     </Link>
                   </div>
                 </div>
               </div>
@@ -228,6 +237,15 @@ const Resources = () => {
           </Card>
         ))}
       </div>
+
+      {editingResource && (
+        <MultiStepResourceDialog
+          isEdit={true}
+          existingData={editingResource}
+          trigger={null}
+          onClose={() => setEditingResource(null)}
+        />
+      )}
     </div>
   );
 };

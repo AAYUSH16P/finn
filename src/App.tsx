@@ -10,10 +10,9 @@ import Dashboard from "./pages/Dashboard";
 import Projects from "./pages/Projects";
 import Resources from "./pages/Resources";
 import RateCalculator from "./pages/RateCalculator";
-import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import ProjectDetails from "./pages/ProjectDetails";
-import Contact from "./pages/Contact";
+import Timeline from "./pages/Timeline";
 
 const queryClient = new QueryClient();
 
@@ -31,9 +30,8 @@ const App = () => (
               <Route path="projects" element={<Projects />} />
               <Route path="projects/:id" element={<ProjectDetails />} />
               <Route path="resources" element={<Resources />} />
+              <Route path="resources/:resourceId/timeline" element={<Timeline />} />
               <Route path="rate-calculator" element={<RateCalculator />} />
-              <Route path="contact" element={<Contact />} />
-              <Route path="settings" element={<Settings />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
