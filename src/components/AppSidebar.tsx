@@ -6,9 +6,7 @@ import {
   FolderOpen,
   Users,
   Calculator,
-  Settings,
-  TrendingUp,
-  Phone
+  TrendingUp
 } from "lucide-react";
 import HeroIcon from "../../public/budgeting.png";
 
@@ -28,9 +26,7 @@ const navigationItems = [
   { title: "Dashboard", url: "/", icon: BarChart3 },
   { title: "Projects", url: "/projects", icon: FolderOpen },
   { title: "Resources", url: "/resources", icon: Users },
-  { title: "Rate Calculator", url: "/rate-calculator", icon: Calculator },
-  { title: "Settings", url: "/settings", icon: Settings },
-  { title: "Contact Us", url: "/contact", icon: Phone },
+  { title: "Rate Calculator", url: "/rate-calculator", icon: Calculator }
 ];
 
 export function AppSidebar() {
@@ -83,10 +79,10 @@ export function AppSidebar() {
                     {({ isActive }) => (
                       <>
                         <item.icon
-                          className={`h-5 w-5 flex-shrink-0 ${isActive ? "text-white" : "text-primary"}`}
+                          className={`h-5 w-5 flex-shrink-0 ${isActive ? "bg-text" : "text-primary"}`}
                         />
                         {!collapsed && (
-                          <span className={`${isActive ? "text-white" : "text-primary"}`}>
+                          <span className={`${isActive ? "bg-text" : "text-primary"}`}>
                             {item.title}
                           </span>
                         )}

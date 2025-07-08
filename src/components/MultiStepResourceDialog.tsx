@@ -28,10 +28,11 @@ interface MultiStepResourceDialogProps {
   isEdit?: boolean;
   existingData?: Resource;
   trigger?: React.ReactNode;
+  onClose?: () => void;
 }
 
-const MultiStepResourceDialog = ({ isEdit = false, existingData, trigger }: MultiStepResourceDialogProps) => {
-  const [open, setOpen] = useState(false);
+const MultiStepResourceDialog = ({ isEdit = false, existingData, trigger, onClose }: MultiStepResourceDialogProps) => {
+  const [open, setOpen] = useState(!!existingData);
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     resourceName: existingData?.name || "",
@@ -44,16 +45,22 @@ const MultiStepResourceDialog = ({ isEdit = false, existingData, trigger }: Mult
     workingDays: existingData?.workingDays?.toString() || "",
     startDate: existingData?.startDate || "",
     endDate: existingData?.endDate || "",
-    skills: existingData?.skills || ""
+    skills: existingData?.skills || "",
+    // Role-inherited rates for editing
+    roleDayRate: "",
+    roleBau: "",
+    roleSaiven: "",
+    roleSpectrumProfit: "",
+    roleBasicRate: ""
   });
   const { toast } = useToast();
 
   // Mock data - in real app this would come from your state/API
   const projects = ["Project Alpha", "Project Beta", "Project Gamma"];
   const roles = [
-    { id: "1", name: "Senior Developer", dayRate: 800, bau: 720, saiven: 750 },
-    { id: "2", name: "Project Manager", dayRate: 900, bau: 820, saiven: 850 },
-    { id: "3", name: "QA Engineer", dayRate: 650, bau: 580, saiven: 600 }
+    { id: "1", name: "Senior Developer", dayRate: 800, bau: 720, saiven: 750, spectrumProfit: 100, basicRate: 650 },
+    { id: "2", name: "Project Manager", dayRate: 900, bau: 820, saiven: 850, spectrumProfit: 150, basicRate: 750 },
+    { id: "3", name: "QA Engineer", dayRate: 650, bau: 580, saiven: 600, spectrumProfit: 80, basicRate: 500 }
   ];
 
   const selectedRole = roles.find(role => role.name === formData.role);
@@ -114,11 +121,17 @@ const MultiStepResourceDialog = ({ isEdit = false, existingData, trigger }: Mult
         workingDays: "",
         startDate: "",
         endDate: "",
-        skills: ""
+        skills: "",
+        roleDayRate: "",
+        roleBau: "",
+        roleSaiven: "",
+        roleSpectrumProfit: "",
+        roleBasicRate: ""
       });
     }
     setStep(1);
     setOpen(false);
+    onClose?.();
   };
 
   const handleInputChange = (field: string, value: string | File | null) => {
@@ -136,16 +149,48 @@ const MultiStepResourceDialog = ({ isEdit = false, existingData, trigger }: Mult
     if (field === "role" || field === "type") {
       // Auto-populate rate based on role and type selection
       setTimeout(() => {
-        const newRate = getInheritedRate();
-        if (newRate) {
-          handleInputChange("dailyRate", newRate);
+        const newRole = field === "role" ? roles.find(r => r.name === value) : selectedRole;
+        if (newRole) {
+          const newRate = field === "type" ? getInheritedRateForType(value, newRole) : getInheritedRate();
+          if (newRate) {
+            handleInputChange("dailyRate", newRate);
+          }
+          // Pre-populate role rates for editing
+          setFormData(prev => ({
+            ...prev,
+            roleDayRate: newRole.dayRate.toString(),
+            roleBau: newRole.bau.toString(),
+            roleSaiven: newRole.saiven.toString(),
+            roleSpectrumProfit: newRole.spectrumProfit.toString(),
+            roleBasicRate: newRole.basicRate.toString()
+          }));
         }
       }, 100);
     }
   };
 
+  const getInheritedRateForType = (type: string, role: any) => {
+    switch (type) {
+      case "CIR":
+        return role.dayRate.toString();
+      case "ACR":
+        return role.saiven.toString();
+      case "Reference":
+        return role.bau.toString();
+      default:
+        return role.dayRate.toString();
+    }
+  };
+
+  const handleOpenChange = (newOpen: boolean) => {
+    setOpen(newOpen);
+    if (!newOpen) {
+      onClose?.();
+    }
+  };
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       {trigger ? (
         <DialogTrigger asChild>
           {trigger}
@@ -221,7 +266,7 @@ const MultiStepResourceDialog = ({ isEdit = false, existingData, trigger }: Mult
             </div>
 
             <div className="flex justify-end space-x-2 pt-4">
-              <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+              <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
                 Cancel
               </Button>
               <Button 
@@ -336,6 +381,72 @@ const MultiStepResourceDialog = ({ isEdit = false, existingData, trigger }: Mult
               </div>
             </div>
 
+            {/* Role-Inherited Rates Section (for editing) */}
+            {isEdit && selectedRole && (
+              <div className="space-y-4 border-t pt-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-medium">Role-Inherited Rates</h3>
+                  <p className="text-sm text-muted-foreground">Edit rates inherited from {formData.role}</p>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="roleDayRate">Day Rate ($)</Label>
+                    <Input
+                      id="roleDayRate"
+                      type="number"
+                      value={formData.roleDayRate}
+                      onChange={(e) => handleInputChange("roleDayRate", e.target.value)}
+                      placeholder="0"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="roleBau">BAU ($)</Label>
+                    <Input
+                      id="roleBau"
+                      type="number"
+                      value={formData.roleBau}
+                      onChange={(e) => handleInputChange("roleBau", e.target.value)}
+                      placeholder="0"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="roleSaiven">Saiven ($)</Label>
+                    <Input
+                      id="roleSaiven"
+                      type="number"
+                      value={formData.roleSaiven}
+                      onChange={(e) => handleInputChange("roleSaiven", e.target.value)}
+                      placeholder="0"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="roleSpectrumProfit">Spectrum Profit ($)</Label>
+                    <Input
+                      id="roleSpectrumProfit"
+                      type="number"
+                      value={formData.roleSpectrumProfit}
+                      onChange={(e) => handleInputChange("roleSpectrumProfit", e.target.value)}
+                      placeholder="0"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="roleBasicRate">Basic Rate ($)</Label>
+                    <Input
+                      id="roleBasicRate"
+                      type="number"
+                      value={formData.roleBasicRate}
+                      onChange={(e) => handleInputChange("roleBasicRate", e.target.value)}
+                      placeholder="0"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="space-y-2">
               <Label htmlFor="skills">Skills & Expertise</Label>
               <Input
@@ -351,7 +462,7 @@ const MultiStepResourceDialog = ({ isEdit = false, existingData, trigger }: Mult
                 <ChevronLeft className="w-4 h-4 mr-2" />
                 Previous
               </Button>
-              <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+              <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
                 Cancel
               </Button>
               <Button onClick={handleSubmit}>
