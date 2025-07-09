@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useLocation } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,9 @@ const Timeline = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [attendanceDialogOpen, setAttendanceDialogOpen] = useState(false);
+
+  const location = useLocation();
+  const backLink = location.state?.from;
 
   // Mock resource data - in real app this would come from API
   const resource = {
@@ -96,10 +99,10 @@ const Timeline = () => {
   return (
     <div className="space-y-8 animate-fade-in">
       <div className="flex items-center gap-4">
-        <Link to={`/projects/${resource.projectId}`}>
+        <Link to={backLink}>
           <Button variant="outline" size="sm">
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Project Details
+            Back
           </Button>
         </Link>
         <div>

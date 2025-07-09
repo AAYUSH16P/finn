@@ -225,11 +225,14 @@ const Resources = () => {
                      >
                        Edit Resource
                      </Button>
-                     <Link to={`/resources/${resource.id}/timeline`}>
-                       <Button variant="outline" size="sm" className="w-full">
-                         View Timeline
-                       </Button>
-                     </Link>
+                     <Link 
+                        to={`/resources/${resource.id}/timeline`} 
+                        state={{ from: `/resources` }}
+                      >
+                        <Button variant="outline" size="sm" className="w-full">
+                          View Timeline
+                        </Button>
+                      </Link>
                   </div>
                 </div>
               </div>
