@@ -337,7 +337,10 @@ const ProjectDetails = () => {
                         >
                           Edit Resource
                         </Button>
-                        <Link to={`/resources/${resource.id}/timeline`}>
+                        <Link 
+                          to={`/resources/${resource.id}/timeline`} 
+                          state={{ from: `/projects/${project.id}` }}
+                        >
                           <Button variant="outline" size="sm" className="w-full">
                             View Timeline
                           </Button>
