@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, MessageSquare, ChevronLeft, ChevronRight } from "lucide-react";
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday, addMonths, subMonths } from "date-fns";
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday, addMonths, subMonths, isBefore, isAfter } from "date-fns";
 import AttendanceMarkDialog from "@/components/AttendanceMarkDialog";
 
 const Timeline = () => {
@@ -18,46 +18,45 @@ const Timeline = () => {
     id: parseInt(resourceId || "1"),
     name: "John Smith",
     project: "Project Alpha",
+    projectId: 1, // Add project ID for navigation
     role: "Senior Developer",
   };
 
-  // Mock attendance data - in real app this would come from API
-  const attendanceData = {
-    "2025-06-01": { status: "na", comment: "New Year" },
-    "2025-06-02": { status: "present", comment: "" },
-    "2025-06-03": { status: "absent", comment: "Sick leave" },
-    "2025-06-04": { status: "present", comment: "" },
-    "2025-06-05": { status: "absent", comment: "Sick leave" },
-    "2025-06-06": { status: "present", comment: "" },
-    "2025-06-07": { status: "present", comment: "" },
-    "2025-06-08": { status: "absent", comment: "Personal leave" },
-    "2025-06-09": { status: "present", comment: "" },
-    "2025-06-10": { status: "na", comment: "Holiday" },
-    "2024-06-15": { status: "present", comment: "Full day" },
-    "2024-06-16": { status: "absent", comment: "Sick leave" },
-    "2024-06-17": { status: "present", comment: "" },
-    "2024-06-18": { status: "na", comment: "Public holiday" },
-    "2024-06-19": { status: "present", comment: "Half day" },
-    "2024-06-22": { status: "present", comment: "" },
-    "2024-06-23": { status: "absent", comment: "Personal leave" },
-    "2024-06-24": { status: "present", comment: "" },
+  // Generate random attendance for past/current dates
+  const generateRandomAttendance = (date: Date) => {
+    if (isAfter(date, new Date())) return null; // No status for future dates
+    
+    const statuses = ['present', 'absent', 'na'];
+    const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
+    const comments = {
+      present: ['Full day', 'Half day', ''],
+      absent: ['Sick leave', 'Personal leave', 'Vacation'],
+      na: ['Public holiday', 'Holiday', 'Weekend']
+    };
+    
+    const statusComments = comments[randomStatus as keyof typeof comments];
+    const randomComment = statusComments[Math.floor(Math.random() * statusComments.length)];
+    
+    return {
+      status: randomStatus,
+      comment: randomComment
+    };
   };
 
   const getAttendanceForDate = (date: Date) => {
-    const dateKey = format(date, "yyyy-MM-dd");
-    return attendanceData[dateKey as keyof typeof attendanceData] || null;
+    return generateRandomAttendance(date);
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case "present":
-        return "bg-finance-profit/10 text-finance-profit";
+        return "text-green-600";
       case "absent":
-        return "bg-finance-loss/10 text-finance-loss";
+        return "text-red-600";
       case "na":
-        return "bg-finance-warning/10 text-finance-warning";
+        return "text-blue-600";
       default:
-        return "bg-muted/20 text-muted-foreground";
+        return "text-muted-foreground";
     }
   };
 
@@ -97,10 +96,10 @@ const Timeline = () => {
   return (
     <div className="space-y-8 animate-fade-in">
       <div className="flex items-center gap-4">
-        <Link to="/resources">
+        <Link to={`/projects/${resource.projectId}`}>
           <Button variant="outline" size="sm">
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Resources
+            Back to Project Details
           </Button>
         </Link>
         <div>
@@ -109,17 +108,17 @@ const Timeline = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
-        {/* Calendar - Takes up more space */}
-        <Card className="xl:col-span-3 bg-card/50 backdrop-blur-sm">
+      <div className="grid grid-cols-1 xl:grid-cols-5 gap-8">
+        {/* Calendar - Takes up most space */}
+        <Card className="xl:col-span-4 bg-card/50 backdrop-blur-sm">
           <CardHeader className="pb-6">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-xl">Attendance Calendar</CardTitle>
-              <div className="flex items-center gap-2">
+              <CardTitle className="text-2xl">Attendance Calendar</CardTitle>
+              <div className="flex items-center gap-4">
                 <Button variant="outline" size="sm" onClick={handlePrevMonth}>
                   <ChevronLeft className="w-4 h-4" />
                 </Button>
-                <h2 className="text-lg font-semibold min-w-[140px] text-center">
+                <h2 className="text-xl font-semibold min-w-[160px] text-center">
                   {format(currentDate, "MMMM yyyy")}
                 </h2>
                 <Button variant="outline" size="sm" onClick={handleNextMonth}>
@@ -130,10 +129,10 @@ const Timeline = () => {
           </CardHeader>
           <CardContent className="px-8 pb-8">
             {/* Calendar Grid */}
-            <div className="grid grid-cols-7 gap-1 rounded-lg border overflow-hidden">
+            <div className="grid grid-cols-7 gap-2 rounded-lg border-2 border-border overflow-hidden p-4">
               {/* Header Row */}
-              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-                <div key={day} className="bg-muted/50 p-3 text-center text-sm font-medium border-r border-b last:border-r-0">
+              {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map((day) => (
+                <div key={day} className="bg-muted/50 p-4 text-center text-sm font-semibold border-2 border-border rounded-lg">
                   {day}
                 </div>
               ))}
@@ -149,35 +148,30 @@ const Timeline = () => {
                   <div
                     key={format(date, "yyyy-MM-dd")}
                     className={`
-                      relative h-24 p-2 border-r border-b last:border-r-0 cursor-pointer transition-colors
+                      relative h-32 p-3 border-2 border-border rounded-lg cursor-pointer transition-all duration-200 hover:shadow-md
                       ${isCurrentMonth ? 'bg-background hover:bg-muted/30' : 'bg-muted/10 text-muted-foreground'}
-                      ${isSelected ? 'ring-2 ring-primary' : ''}
-                      ${isTodayDate ? 'bg-primary/5' : ''}
+                      ${isSelected ? 'ring-2 ring-primary shadow-lg' : ''}
+                      ${isTodayDate ? 'ring-2 ring-primary/50 bg-primary/5' : ''}
                     `}
                     onClick={() => handleDateClick(date)}
                   >
                     <div className="flex flex-col h-full">
-                      <div className="flex justify-between items-start mb-1">
-                        <span className={`text-sm font-medium ${isTodayDate ? 'text-primary' : ''}`}>
-                          {format(date, "dd")}
+                      <div className="flex justify-between items-start mb-2">
+                        <span className={`text-lg font-semibold ${isTodayDate ? 'text-primary' : ''}`}>
+                          {format(date, "d")}
                         </span>
                         {isTodayDate && (
-                          <div className="w-2 h-2 rounded-full bg-primary"></div>
+                          <div className="w-3 h-3 rounded-full bg-primary"></div>
                         )}
                       </div>
                       
                       {attendance && isCurrentMonth && (
-                        <div className="flex-1 flex flex-col justify-center items-center">
-                          <div className={`
-                            px-2 py-1 rounded text-xs font-semibold
-                            ${attendance.status === 'present' ? 'bg-finance-profit/20 text-finance-profit' : ''}
-                            ${attendance.status === 'absent' ? 'bg-finance-loss/20 text-finance-loss' : ''}
-                            ${attendance.status === 'na' ? 'bg-finance-warning/20 text-finance-warning' : ''}
-                          `}>
+                        <div className="flex-1 flex flex-col justify-center items-center space-y-1">
+                          <div className={`text-2xl font-bold ${getStatusColor(attendance.status)}`}>
                             {getStatusIndicator(attendance.status)}
                           </div>
                           {attendance.comment && (
-                            <div className="mt-1 text-xs text-muted-foreground text-center truncate w-full">
+                            <div className="text-xs text-muted-foreground text-center leading-tight">
                               {attendance.comment}
                             </div>
                           )}
@@ -189,18 +183,18 @@ const Timeline = () => {
               })}
             </div>
             
-            <div className="mt-8 flex justify-center gap-6 text-sm">
+            <div className="mt-8 flex justify-center gap-8 text-sm">
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded bg-finance-profit/20 flex items-center justify-center text-xs font-semibold text-finance-profit">P</div>
+                <div className="w-6 h-6 rounded bg-background border-2 border-border flex items-center justify-center text-lg font-bold text-green-600">P</div>
                 <span className="font-medium">Present</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded bg-finance-loss/20 flex items-center justify-center text-xs font-semibold text-finance-loss">A</div>
+                <div className="w-6 h-6 rounded bg-background border-2 border-border flex items-center justify-center text-lg font-bold text-red-600">A</div>
                 <span className="font-medium">Absent</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded bg-finance-warning/20 flex items-center justify-center text-xs font-semibold text-finance-warning">NA</div>
-                <span className="font-medium">N/A</span>
+                <div className="w-6 h-6 rounded bg-background border-2 border-border flex items-center justify-center text-sm font-bold text-blue-600">NA</div>
+                <span className="font-medium">Not Available</span>
               </div>
             </div>
           </CardContent>
@@ -220,7 +214,9 @@ const Timeline = () => {
                   <div className="space-y-4">
                     <div>
                       <p className="text-sm font-medium text-muted-foreground mb-2">Status</p>
-                      <Badge className={getStatusColor(selectedDateAttendance.status)}>
+                      <Badge className={`${selectedDateAttendance.status === 'present' ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' : ''}
+                        ${selectedDateAttendance.status === 'absent' ? 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300' : ''}
+                        ${selectedDateAttendance.status === 'na' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' : ''}`}>
                         {selectedDateAttendance.status.toUpperCase()}
                       </Badge>
                     </div>
