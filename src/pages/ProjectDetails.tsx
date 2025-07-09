@@ -7,6 +7,7 @@ import { ArrowLeft, User, Calendar, DollarSign, ArrowUpDown, Edit, Eye } from "l
 import { useState } from "react";
 import RoleDialog from "@/components/RoleDialog";
 import RoleViewDialog from "@/components/RoleViewDialog";
+import MultiStepResourceDialog from "@/components/MultiStepResourceDialog";
 
 const ProjectDetails = () => {
   const { id } = useParams();
@@ -15,6 +16,7 @@ const ProjectDetails = () => {
   const [roleViewDialogOpen, setRoleViewDialogOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<any>(null);
   const [editingRole, setEditingRole] = useState<any>(null);
+  const [editingResource, setEditingResource] = useState<any>(null);
 
   // Mock data - in real app this would come from API based on project ID
   const project = {
@@ -55,10 +57,13 @@ const ProjectDetails = () => {
     {
       id: 1,
       name: "John Smith",
+      project: project.name,
+      role: "Senior Developer",
       type: "CIR",
       dailyRate: 650,
       workingDays: 120,
       earnings: 78000,
+      profit: 200,
       startDate: "2024-01-15",
       endDate: "2024-06-30",
       projectId: 1,
@@ -66,10 +71,13 @@ const ProjectDetails = () => {
     {
       id: 3,
       name: "Mike Chen",
+      project: project.name,
+      role: "QA Engineer",
       type: "Reference",
       dailyRate: 700,
       workingDays: 80,
       earnings: 56000,
+      profit: -100,
       startDate: "2024-03-01",
       endDate: "2024-07-31",
       projectId: 1,
@@ -220,19 +228,22 @@ const ProjectDetails = () => {
       <div className="space-y-4">
         <div className="flex justify-between items-center">
           <h2 className="text-xl font-semibold">Project Resources ({sortedResources.length})</h2>
-          <div className="flex items-center gap-2">
-            <ArrowUpDown className="w-4 h-4" />
-            <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Sort by..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="name">Name (A-Z)</SelectItem>
-                <SelectItem value="earnings">Earnings (High-Low)</SelectItem>
-                <SelectItem value="dailyRate">Daily Rate (High-Low)</SelectItem>
-                <SelectItem value="workingDays">Working Days (High-Low)</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="flex items-center gap-4">
+            <MultiStepResourceDialog />
+            <div className="flex items-center gap-2">
+              <ArrowUpDown className="w-4 h-4" />
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="Sort by..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="name">Name (A-Z)</SelectItem>
+                  <SelectItem value="earnings">Earnings (High-Low)</SelectItem>
+                  <SelectItem value="dailyRate">Daily Rate (High-Low)</SelectItem>
+                  <SelectItem value="workingDays">Working Days (High-Low)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
 
@@ -243,7 +254,7 @@ const ProjectDetails = () => {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-4">
+          <div className="grid gap-6">
             {sortedResources.map((resource) => (
               <Card key={resource.id} className="bg-card/50 backdrop-blur-sm hover:bg-card/70 transition-all duration-200">
                 <CardHeader>
@@ -253,7 +264,7 @@ const ProjectDetails = () => {
                         <User className="w-5 h-5" />
                         {resource.name}
                       </CardTitle>
-                      <CardDescription>Resource Assignment</CardDescription>
+                      <CardDescription>{resource.project} • {resource.role}</CardDescription>
                     </div>
                     <Badge className={getTypeColor(resource.type)}>
                       {resource.type}
@@ -262,6 +273,7 @@ const ProjectDetails = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {/* Assignment Details */}
                     <div className="space-y-2">
                       <h4 className="text-sm font-medium text-muted-foreground">Assignment</h4>
                       <div className="space-y-1">
@@ -276,6 +288,7 @@ const ProjectDetails = () => {
                       </div>
                     </div>
 
+                    {/* Rate Information */}
                     <div className="space-y-2">
                       <h4 className="text-sm font-medium text-muted-foreground">Rate Details</h4>
                       <div className="space-y-1">
@@ -290,6 +303,7 @@ const ProjectDetails = () => {
                       </div>
                     </div>
 
+                    {/* Earnings */}
                     <div className="space-y-2">
                       <h4 className="text-sm font-medium text-muted-foreground">Earnings</h4>
                       <div className="p-3 bg-finance-profit/10 rounded-lg">
@@ -302,18 +316,32 @@ const ProjectDetails = () => {
                         <p className="text-xs text-muted-foreground mt-1">
                           ${resource.dailyRate} × {resource.workingDays} days
                         </p>
+                        <div className="text-xs mt-1">
+                          <span className="text-muted-foreground">Profit: </span>
+                          <span className={resource.profit >= 0 ? "text-finance-profit" : "text-finance-loss"}>
+                            ${resource.profit}
+                          </span>
+                        </div>
                       </div>
                     </div>
 
+                    {/* Actions */}
                     <div className="space-y-2">
                       <h4 className="text-sm font-medium text-muted-foreground">Actions</h4>
                       <div className="space-y-2">
-                        <Button variant="outline" size="sm" className="w-full">
-                          Edit Assignment
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="w-full"
+                          onClick={() => setEditingResource(resource)}
+                        >
+                          Edit Resource
                         </Button>
-                        <Button variant="outline" size="sm" className="w-full">
-                          View Timeline
-                        </Button>
+                        <Link to={`/resources/${resource.id}/timeline`}>
+                          <Button variant="outline" size="sm" className="w-full">
+                            View Timeline
+                          </Button>
+                        </Link>
                       </div>
                     </div>
                   </div>
@@ -337,6 +365,15 @@ const ProjectDetails = () => {
         role={selectedRole}
         onEdit={handleEditRole}
       />
+
+      {editingResource && (
+        <MultiStepResourceDialog
+          isEdit={true}
+          existingData={editingResource}
+          trigger={null}
+          onClose={() => setEditingResource(null)}
+        />
+      )}
     </div>
   );
 };
