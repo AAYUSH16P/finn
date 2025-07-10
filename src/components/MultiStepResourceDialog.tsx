@@ -22,6 +22,12 @@ interface Resource {
   resume?: File;
   earnings: number;
   profit: number;
+  // New personal details
+  bloodGroup?: string;
+  location?: string;
+  dateOfBirth?: string;
+  phoneNumber?: string;
+  age?: number;
 }
 
 interface MultiStepResourceDialogProps {
@@ -38,6 +44,11 @@ const MultiStepResourceDialog = ({ isEdit = false, existingData, trigger, onClos
     resourceName: existingData?.name || "",
     email: existingData?.email || "",
     resume: null as File | null,
+    bloodGroup: existingData?.bloodGroup || "",
+    location: existingData?.location || "",
+    dateOfBirth: existingData?.dateOfBirth || "",
+    phoneNumber: existingData?.phoneNumber || "",
+    age: existingData?.age?.toString() || "",
     project: existingData?.project || "",
     role: existingData?.role || "",
     type: existingData?.type || "",
@@ -62,6 +73,8 @@ const MultiStepResourceDialog = ({ isEdit = false, existingData, trigger, onClos
     { id: "2", name: "Project Manager", dayRate: 900, bau: 820, saiven: 850, spectrumProfit: 150, basicRate: 750 },
     { id: "3", name: "QA Engineer", dayRate: 650, bau: 580, saiven: 600, spectrumProfit: 80, basicRate: 500 }
   ];
+
+  const bloodGroups = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 
   const selectedRole = roles.find(role => role.name === formData.role);
 
@@ -114,6 +127,11 @@ const MultiStepResourceDialog = ({ isEdit = false, existingData, trigger, onClos
         resourceName: "",
         email: "",
         resume: null,
+        bloodGroup: "",
+        location: "",
+        dateOfBirth: "",
+        phoneNumber: "",
+        age: "",
         project: "",
         role: "",
         type: "",
@@ -203,7 +221,7 @@ const MultiStepResourceDialog = ({ isEdit = false, existingData, trigger, onClos
           </Button>
         </DialogTrigger>
       )}
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {isEdit ? "Edit Resource" : "Add New Resource"} - Step {step} of 2
@@ -221,7 +239,7 @@ const MultiStepResourceDialog = ({ isEdit = false, existingData, trigger, onClos
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="resourceName">Resource Name *</Label>
+                <Label htmlFor="resourceName">Full Name *</Label>
                 <Input
                   id="resourceName"
                   value={formData.resourceName}
@@ -240,6 +258,70 @@ const MultiStepResourceDialog = ({ isEdit = false, existingData, trigger, onClos
                   placeholder="Enter email address"
                   required
                 />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="phoneNumber">Phone Number *</Label>
+                <Input
+                  id="phoneNumber"
+                  type="tel"
+                  value={formData.phoneNumber}
+                  onChange={(e) => handleInputChange("phoneNumber", e.target.value)}
+                  placeholder="Enter phone number"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="location">Location *</Label>
+                <Input
+                  id="location"
+                  value={formData.location}
+                  onChange={(e) => handleInputChange("location", e.target.value)}
+                  placeholder="Enter location/address"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="dateOfBirth">Date of Birth *</Label>
+                <Input
+                  id="dateOfBirth"
+                  type="date"
+                  value={formData.dateOfBirth}
+                  onChange={(e) => handleInputChange("dateOfBirth", e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="age">Age</Label>
+                <Input
+                  id="age"
+                  type="number"
+                  value={formData.age}
+                  onChange={(e) => handleInputChange("age", e.target.value)}
+                  placeholder="Age"
+                  min="18"
+                  max="100"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="bloodGroup">Blood Group</Label>
+                <Select value={formData.bloodGroup} onValueChange={(value) => handleInputChange("bloodGroup", value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select blood group" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {bloodGroups.map((group) => (
+                      <SelectItem key={group} value={group}>
+                        {group}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
@@ -272,7 +354,7 @@ const MultiStepResourceDialog = ({ isEdit = false, existingData, trigger, onClos
               <Button 
                 type="button" 
                 onClick={handleNext}
-                disabled={!formData.resourceName || !formData.email}
+                disabled={!formData.resourceName || !formData.email || !formData.phoneNumber || !formData.location || !formData.dateOfBirth}
               >
                 Next
                 <ChevronRight className="w-4 h-4 ml-2" />

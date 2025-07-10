@@ -233,6 +233,12 @@ const Resources = () => {
                           View Timeline
                         </Button>
                       </Link>
+
+                      <Link to={`/resources/${resource.id}/details`}>
+                       <Button variant="outline" size="sm" className="w-full">
+                         View Details
+                       </Button>
+                     </Link>
                   </div>
                 </div>
               </div>
