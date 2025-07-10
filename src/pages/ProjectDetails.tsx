@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, User, Calendar, DollarSign, ArrowUpDown, Edit, Eye } from "lucide-react";
 import { useState } from "react";
 import RoleDialog from "@/components/RoleDialog";
@@ -18,7 +19,6 @@ const ProjectDetails = () => {
   const [editingRole, setEditingRole] = useState<any>(null);
   const [editingResource, setEditingResource] = useState<any>(null);
 
-  // Mock data - in real app this would come from API based on project ID
   const project = {
     id: parseInt(id || "1"),
     name: "Project Alpha",
@@ -128,13 +128,11 @@ const ProjectDetails = () => {
   };
 
   const handleAddRole = (role: any) => {
-    // Handle adding new role
     console.log("Add role:", role);
     setRoleDialogOpen(false);
   };
 
   const handleUpdateRole = (role: any) => {
-    // Handle updating existing role
     console.log("Update role:", role);
     setEditingRole(null);
     setRoleDialogOpen(false);
@@ -151,7 +149,7 @@ const ProjectDetails = () => {
         </Link>
         <div>
           <h1 className="text-3xl font-bold text-foreground">{project.name}</h1>
-          <p className="text-muted-foreground">{project.client} - Project Resources</p>
+          <p className="text-muted-foreground">{project.client} - Project Details</p>
         </div>
       </div>
 
@@ -194,166 +192,171 @@ const ProjectDetails = () => {
         </CardContent>
       </Card>
 
-      {/* Project Roles */}
-      <Card className="bg-card/50 backdrop-blur-sm">
-        <CardHeader>
-          <CardTitle>Project Roles ({project.roles.length})</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4">
-            {project.roles.map((role) => (
-              <div key={role.id} className="flex items-center justify-between p-4 border rounded-lg">
-                <div>
-                  <h4 className="font-medium">{role.roleName}</h4>
-                  <p className="text-sm text-muted-foreground">{role.roleSpecification}</p>
-                  <p className="text-sm text-muted-foreground">Day Rate: ${role.dayRate}</p>
-                </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={() => handleViewRole(role)}>
-                    <Eye className="w-4 h-4 mr-2" />
-                    View Details
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => handleEditRole(role)}>
-                    <Edit className="w-4 h-4 mr-2" />
-                    Edit
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Resources Section */}
-      <div className="space-y-4">
-        <div className="flex justify-between items-center">
-          <h2 className="text-xl font-semibold">Project Resources ({sortedResources.length})</h2>
-          <div className="flex items-center gap-4">
-            <MultiStepResourceDialog />
-            <div className="flex items-center gap-2">
-              <ArrowUpDown className="w-4 h-4" />
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-48">
-                  <SelectValue placeholder="Sort by..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="name">Name (A-Z)</SelectItem>
-                  <SelectItem value="earnings">Earnings (High-Low)</SelectItem>
-                  <SelectItem value="dailyRate">Daily Rate (High-Low)</SelectItem>
-                  <SelectItem value="workingDays">Working Days (High-Low)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </div>
-
-        {sortedResources.length === 0 ? (
+      {/* Tabs for Project Roles and Resources */}
+      <Tabs defaultValue="roles" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="roles">Project Roles ({project.roles.length})</TabsTrigger>
+          <TabsTrigger value="resources">Project Resources ({sortedResources.length})</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="roles" className="space-y-4">
           <Card className="bg-card/50 backdrop-blur-sm">
-            <CardContent className="p-8 text-center">
-              <p className="text-muted-foreground">No resources assigned to this project yet.</p>
+            <CardHeader>
+              <CardTitle>Project Roles ({project.roles.length})</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4">
+                {project.roles.map((role) => (
+                  <div key={role.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div>
+                      <h4 className="font-medium">{role.roleName}</h4>
+                      <p className="text-sm text-muted-foreground">{role.roleSpecification}</p>
+                      <p className="text-sm text-muted-foreground">Day Rate: ${role.dayRate}</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" onClick={() => handleViewRole(role)}>
+                        <Eye className="w-4 h-4 mr-2" />
+                        View Details
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => handleEditRole(role)}>
+                        <Edit className="w-4 h-4 mr-2" />
+                        Edit
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </Card>
-        ) : (
-          <div className="grid gap-6">
-            {sortedResources.map((resource) => (
-              <Card key={resource.id} className="bg-card/50 backdrop-blur-sm hover:bg-card/70 transition-all duration-200">
-                <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <CardTitle className="flex items-center gap-2">
-                        <User className="w-5 h-5" />
-                        {resource.name}
-                      </CardTitle>
-                      <CardDescription>{resource.project} • {resource.role}</CardDescription>
-                    </div>
-                    <Badge className={getTypeColor(resource.type)}>
-                      {resource.type}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {/* Assignment Details */}
-                    <div className="space-y-2">
-                      <h4 className="text-sm font-medium text-muted-foreground">Assignment</h4>
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2 text-sm">
-                          <Calendar className="w-3 h-3" />
-                          <span>{resource.startDate}</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <Calendar className="w-3 h-3" />
-                          <span>{resource.endDate}</span>
-                        </div>
-                      </div>
-                    </div>
+        </TabsContent>
 
-                    {/* Rate Information */}
-                    <div className="space-y-2">
-                      <h4 className="text-sm font-medium text-muted-foreground">Rate Details</h4>
-                      <div className="space-y-1">
-                        <div className="flex justify-between text-sm">
-                          <span>Daily Rate:</span>
-                          <span className="font-mono">${resource.dailyRate}</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span>Working Days:</span>
-                          <span className="font-mono">{resource.workingDays}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Earnings */}
-                    <div className="space-y-2">
-                      <h4 className="text-sm font-medium text-muted-foreground">Earnings</h4>
-                      <div className="p-3 bg-finance-profit/10 rounded-lg">
-                        <div className="flex items-center gap-2">
-                          <DollarSign className="w-4 h-4 text-finance-profit" />
-                          <span className="text-lg font-bold text-finance-profit">
-                            ${resource.earnings.toLocaleString()}
-                          </span>
-                        </div>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          ${resource.dailyRate} × {resource.workingDays} days
-                        </p>
-                        <div className="text-xs mt-1">
-                          <span className="text-muted-foreground">Profit: </span>
-                          <span className={resource.profit >= 0 ? "text-finance-profit" : "text-finance-loss"}>
-                            ${resource.profit}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="space-y-2">
-                      <h4 className="text-sm font-medium text-muted-foreground">Actions</h4>
-                      <div className="space-y-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="w-full"
-                          onClick={() => setEditingResource(resource)}
-                        >
-                          Edit Resource
-                        </Button>
-                        <Link 
-                          to={`/resources/${resource.id}/timeline`} 
-                          state={{ from: `/projects/${project.id}` }}
-                        >
-                          <Button variant="outline" size="sm" className="w-full">
-                            View Timeline
-                          </Button>
-                        </Link>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+        <TabsContent value="resources" className="space-y-4">
+          <div className="flex justify-between items-center">
+            <h2 className="text-xl font-semibold">Project Resources ({sortedResources.length})</h2>
+            <div className="flex items-center gap-4">
+              <MultiStepResourceDialog />
+              <div className="flex items-center gap-2">
+                <ArrowUpDown className="w-4 h-4" />
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="w-48">
+                    <SelectValue placeholder="Sort by..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="name">Name (A-Z)</SelectItem>
+                    <SelectItem value="earnings">Earnings (High-Low)</SelectItem>
+                    <SelectItem value="dailyRate">Daily Rate (High-Low)</SelectItem>
+                    <SelectItem value="workingDays">Working Days (High-Low)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           </div>
-        )}
-      </div>
+
+          {sortedResources.length === 0 ? (
+            <Card className="bg-card/50 backdrop-blur-sm">
+              <CardContent className="p-8 text-center">
+                <p className="text-muted-foreground">No resources assigned to this project yet.</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid gap-6">
+              {sortedResources.map((resource) => (
+                <Card key={resource.id} className="bg-card/50 backdrop-blur-sm hover:bg-card/70 transition-all duration-200">
+                  <CardHeader>
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <CardTitle className="flex items-center gap-2">
+                          <User className="w-5 h-5" />
+                          {resource.name}
+                        </CardTitle>
+                        <CardDescription>{resource.project} • {resource.role}</CardDescription>
+                      </div>
+                      <Badge className={getTypeColor(resource.type)}>
+                        {resource.type}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                      {/* Assignment Details */}
+                      <div className="space-y-2">
+                        <h4 className="text-sm font-medium text-muted-foreground">Assignment</h4>
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2 text-sm">
+                            <Calendar className="w-3 h-3" />
+                            <span>{resource.startDate}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm">
+                            <Calendar className="w-3 h-3" />
+                            <span>{resource.endDate}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Rate Information */}
+                      <div className="space-y-2">
+                        <h4 className="text-sm font-medium text-muted-foreground">Rate Details</h4>
+                        <div className="space-y-1">
+                          <div className="flex justify-between text-sm">
+                            <span>Daily Rate:</span>
+                            <span className="font-mono">${resource.dailyRate}</span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span>Working Days:</span>
+                            <span className="font-mono">{resource.workingDays}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Earnings */}
+                      <div className="space-y-2">
+                        <h4 className="text-sm font-medium text-muted-foreground">Earnings</h4>
+                        <div className="p-3 bg-finance-profit/10 rounded-lg">
+                          <div className="flex items-center gap-2">
+                            <DollarSign className="w-4 h-4 text-finance-profit" />
+                            <span className="text-lg font-bold text-finance-profit">
+                              ${resource.earnings.toLocaleString()}
+                            </span>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            ${resource.dailyRate} × {resource.workingDays} days
+                          </p>
+                          <div className="text-xs mt-1">
+                            <span className="text-muted-foreground">Profit: </span>
+                            <span className={resource.profit >= 0 ? "text-finance-profit" : "text-finance-loss"}>
+                              ${resource.profit}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="space-y-2">
+                        <h4 className="text-sm font-medium text-muted-foreground">Actions</h4>
+                        <div className="space-y-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="w-full"
+                            onClick={() => setEditingResource(resource)}
+                          >
+                            Edit Resource
+                          </Button>
+                          <Link to={`/resources/${resource.id}/timeline`}>
+                            <Button variant="outline" size="sm" className="w-full">
+                              View Timeline
+                            </Button>
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
 
       <RoleDialog 
         open={roleDialogOpen} 
