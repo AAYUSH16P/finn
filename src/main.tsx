@@ -6,7 +6,7 @@ import './index.css'
 createRoot(document.getElementById("root")!).render(
   <ThemeProvider 
     attribute="class" 
-    defaultTheme="root" 
+    defaultTheme="light" 
     enableSystem
     disableTransitionOnChange
   >
