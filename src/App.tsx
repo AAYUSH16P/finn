@@ -14,6 +14,7 @@ import RateCalculator from "./pages/RateCalculator";
 import NotFound from "./pages/NotFound";
 import ProjectDetails from "./pages/ProjectDetails";
 import Timeline from "./pages/Timeline";
+import Analytics from "./pages/Analytics";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +35,7 @@ const App = () => (
               <Route path="resources/:resourceId/details" element={<ResourceDetails />} />
               <Route path="resources/:resourceId/timeline" element={<Timeline />} />
               <Route path="rate-calculator" element={<RateCalculator />} />
+              <Route path="analytics" element={<Analytics />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

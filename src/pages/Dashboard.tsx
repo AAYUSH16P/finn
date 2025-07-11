@@ -1,9 +1,9 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { TrendingUp, TrendingDown, DollarSign, Users, FolderOpen, Calculator, ProjectorIcon } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Cell } from "recharts";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const Dashboard = () => {
   // Mock data for charts
@@ -21,6 +21,13 @@ const Dashboard = () => {
     { name: "Project Beta", profit: 8500, margin: 18 },
     { name: "Project Gamma", profit: 12000, margin: 25 },
     { name: "Project Delta", profit: -2000, margin: -5 },
+  ];
+
+  const companyEarningsData = [
+    { company: "Delphi", earnings: 52000, percentage: 28 },
+    { company: "BAU", earnings: 44000, percentage: 24 },
+    { company: "Saiven", earnings: 38000, percentage: 21 },
+    { company: "Spectrum", earnings: 48000, percentage: 27 },
   ];
 
   return (
@@ -93,6 +100,56 @@ const Dashboard = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Company Earnings Overview */}
+      <Card className="bg-card/50 backdrop-blur-sm">
+        <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between">
+          <div>
+            <CardTitle>Company Earnings Overview</CardTitle>
+            <CardDescription>Earnings trend by company over time</CardDescription>
+          </div>
+          <Select defaultValue="monthly">
+            <SelectTrigger className="w-[150px] mt-4 md:mt-0">
+              <SelectValue placeholder="Time Range" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="weekly">Last 7 days</SelectItem>
+              <SelectItem value="monthly">Last Month</SelectItem>
+              <SelectItem value="quarterly">Last Quarter</SelectItem>
+            </SelectContent>
+          </Select>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={[
+              { time: "Jan", Delphi: 12000, BAU: 10000, Saiven: 8000, Spectrum: 11000 },
+              { time: "Feb", Delphi: 14000, BAU: 12000, Saiven: 9000, Spectrum: 12000 },
+              { time: "Mar", Delphi: 13000, BAU: 11000, Saiven: 9500, Spectrum: 12500 },
+              { time: "Apr", Delphi: 16000, BAU: 10500, Saiven: 8500, Spectrum: 13000 },
+            ]}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <XAxis dataKey="time" stroke="hsl(var(--muted-foreground))" />
+              <YAxis stroke="hsl(var(--muted-foreground))" />
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: "hsl(var(--card))", 
+                  border: "1px solid hsl(var(--border))",
+                  borderRadius: "6px"
+                }} 
+              />
+              <Bar dataKey="Delphi" fill="#3b82f6" />
+              <Bar dataKey="BAU" fill="#10b981" />
+              <Bar dataKey="Saiven" fill="#f59e0b" />
+              <Bar dataKey="Spectrum" fill="#ef4444" />
+
+              <Line type="monotone" dataKey="Delphi" stroke="#3b82f6" strokeWidth={2} />
+              <Line type="monotone" dataKey="BAU" stroke="#10b981" strokeWidth={2} />
+              <Line type="monotone" dataKey="Saiven" stroke="#f59e0b" strokeWidth={2} />
+              <Line type="monotone" dataKey="Spectrum" stroke="#ef4444" strokeWidth={2} />
+            </LineChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
