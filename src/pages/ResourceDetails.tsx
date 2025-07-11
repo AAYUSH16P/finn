@@ -1,19 +1,35 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, Download, Calendar, DollarSign, TrendingUp, User, MapPin, Phone, Droplet, Heart, Cake } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  ArrowLeft, Download, Calendar, DollarSign, TrendingUp, User,
+  MapPin, Phone, Droplet, Heart, Cake, MessageSquare,
+  ChevronLeft, ChevronRight, Info
+} from "lucide-react";
+import {
+  Card, CardContent, CardDescription, CardHeader, CardTitle
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue
+} from "@/components/ui/select";
+import {
+  Tabs, TabsContent, TabsList, TabsTrigger
+} from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  format, startOfMonth, endOfMonth, eachDayOfInterval,
+  isSameMonth, isToday, addMonths, subMonths,
+  parseISO
+} from "date-fns";
 
 const ResourceDetails = () => {
   const { resourceId } = useParams();
   const [selectedProject, setSelectedProject] = useState("project-alpha");
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [attendanceDialogOpen, setAttendanceDialogOpen] = useState(false);
 
-  // Mock data - in real app this would come from API
   const resource = {
     id: resourceId,
     name: "John Smith",
@@ -36,15 +52,14 @@ const ResourceDetails = () => {
   const currentProject = projects.find(p => p.id === selectedProject);
   const isCurrentProject = currentProject?.status === "active";
 
-  // Mock project-specific data
   const projectData = {
     "project-alpha": {
       dailyRate: 650,
       totalDays: 120,
       workedDays: 95,
       totalEarnings: 61750,
-      startDate: "2024-01-15",
-      endDate: "2024-06-30",
+      startDate: "2025-01-15",
+      endDate: "2025-07-30",
       attendance: 92,
       performance: 95
     },
@@ -53,8 +68,8 @@ const ResourceDetails = () => {
       totalDays: 80,
       workedDays: 78,
       totalEarnings: 46800,
-      startDate: "2023-08-01",
-      endDate: "2023-12-15",
+      startDate: "2024-08-01",
+      endDate: "2024-12-15",
       attendance: 97,
       performance: 88
     },
@@ -63,59 +78,114 @@ const ResourceDetails = () => {
       totalDays: 60,
       workedDays: 58,
       totalEarnings: 35960,
-      startDate: "2023-03-01",
-      endDate: "2023-06-30",
+      startDate: "2024-03-01",
+      endDate: "2024-06-30",
       attendance: 95,
       performance: 91
     }
   };
 
   const currentData = projectData[selectedProject as keyof typeof projectData];
+  const projectStartDate = parseISO(currentData.startDate);
+  const projectEndDate = parseISO(currentData.endDate);
+  const today = new Date();
 
-  // Generate mock calendar data
-  const generateCalendarData = () => {
-    const today = new Date();
-    const data: { [key: string]: 'present' | 'absent' | 'not-applicable' } = {};
-    
-    // Generate past 90 days of data
-    for (let i = 90; i >= 0; i--) {
-      const date = new Date(today);
-      date.setDate(date.getDate() - i);
-      const dateKey = date.toISOString().split('T')[0];
-      
-      // Weekend or future dates are not applicable
-      if (date.getDay() === 0 || date.getDay() === 6 || date > today) {
-        data[dateKey] = 'not-applicable';
-      } else {
-        // Random attendance for past weekdays
-        data[dateKey] = Math.random() > 0.1 ? 'present' : 'absent';
+  useEffect(() => {
+    const newStartDate = parseISO(currentData.startDate);
+    setCurrentDate(newStartDate);
+  }, [selectedProject]);
+
+  const [calendarData, setCalendarData] = useState<{ [key: string]: 'present' | 'absent' | 'not-applicable' }>({});
+  useEffect(() => {
+    const generateCalendarData = () => {
+      const data: { [key: string]: 'present' | 'absent' | 'not-applicable' } = {};
+      const start = new Date(parseISO(currentData.startDate));
+      const end = new Date(parseISO(currentData.endDate));
+
+      for (let date = new Date(start); date <= end; date.setDate(date.getDate() + 1)) {
+        const dateKey = date.toISOString().split('T')[0];
+
+        if (date > today) {
+          data[dateKey] = 'not-applicable';
+        } else if (date.getDay() === 0 || date.getDay() === 6) {
+          data[dateKey] = 'not-applicable';
+        } else {
+          const rand = Math.random();
+          if (rand > 0.15) {
+            data[dateKey] = 'present';
+          } else if (rand > 0.05) {
+            data[dateKey] = 'absent';
+          } else {
+            data[dateKey] = 'not-applicable';
+          }
+        }
       }
-    }
-    
-    return data;
-  };
 
-  const calendarData = generateCalendarData();
+      return data;
+    };
 
-  const getDayClassName = (date: Date) => {
+    const generatedData = generateCalendarData();
+    setCalendarData(generatedData);
+  }, [selectedProject]);
+
+  const getAttendanceForDate = (date: Date) => {
     const dateKey = date.toISOString().split('T')[0];
-    const status = calendarData[dateKey];
-    
+    if (date > today) return { status: 'not-applicable', comment: '' }; // ✅ Show NA for future dates
+    return calendarData[dateKey] ? { status: calendarData[dateKey], comment: '' } : null;
+  };
+
+  const getStatusColor = (status: string) => {
     switch (status) {
-      case 'present':
-        return 'bg-green-500 text-white hover:bg-green-600';
-      case 'absent':
-        return 'bg-red-500 text-white hover:bg-red-600';
-      case 'not-applicable':
-        return 'bg-gray-200 text-gray-400';
-      default:
-        return '';
+      case "present": return "text-green-600";
+      case "absent": return "text-red-600";
+      case "not-applicable": return "text-blue-600";
+      default: return "text-muted-foreground";
     }
   };
 
+  const getStatusIndicator = (status: string) => {
+    switch (status) {
+      case "present": return "P";
+      case "absent": return "A";
+      case "not-applicable": return "NA";
+      default: return "";
+    }
+  };
+
+  const monthStart = startOfMonth(currentDate);
+  const monthEnd = endOfMonth(currentDate);
+  const startDate = new Date(monthStart.getFullYear(), monthStart.getMonth(), monthStart.getDate() - monthStart.getDay());
+  const endDate = new Date(monthEnd.getFullYear(), monthEnd.getMonth(), monthEnd.getDate() + (6 - monthEnd.getDay()));
+
+  const dateRange = eachDayOfInterval({ start: startDate, end: endDate });
+
+  const selectedDateAttendance = selectedDate ? getAttendanceForDate(selectedDate) : null;
+
+  const handleDateClick = (date: Date) => {
+    setSelectedDate(date);
+  };
+
+  const realProjectEndDate = isCurrentProject ? (today < projectEndDate ? today : projectEndDate) : projectEndDate;
+
+  const handleNextMonth = () => {
+    const newDate = addMonths(currentDate, 1);
+    if (startOfMonth(newDate) <= projectEndDate) {
+      setCurrentDate(newDate);
+    }
+  };
+
+  const handlePrevMonth = () => {
+    const newDate = subMonths(currentDate, 1);
+    if (endOfMonth(newDate) >= projectStartDate) {
+      setCurrentDate(newDate);
+    }
+  };
+
+  const isDateInProjectPeriod = (date: Date) => {
+    return date >= projectStartDate && date <= projectEndDate;
+  };
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Header */}
       <div className="flex items-center gap-4">
         <Link to="/resources">
           <Button variant="outline" size="icon">
@@ -128,7 +198,6 @@ const ResourceDetails = () => {
         </div>
       </div>
 
-      {/* Personal Information */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -172,7 +241,6 @@ const ResourceDetails = () => {
         </CardContent>
       </Card>
 
-      {/* Project Selection */}
       <Card>
         <CardHeader>
           <CardTitle>Project Selection</CardTitle>
@@ -208,11 +276,11 @@ const ResourceDetails = () => {
         </CardContent>
       </Card>
 
-      {/* Project Details Tabs */}
       <Tabs defaultValue="overview" className="w-full">
         <TabsList>
           <TabsTrigger value="overview">Project Overview</TabsTrigger>
           <TabsTrigger value="timeline">Timeline & Attendance</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
@@ -277,38 +345,199 @@ const ResourceDetails = () => {
         </TabsContent>
 
         <TabsContent value="timeline" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 ">
-            <div className="lg:col-span-1">
+          <Alert>
+            <Info className="h-4 w-4" />
+            <AlertDescription>
+              Project Period: <strong>{format(projectStartDate, "MMM dd, yyyy")}</strong> to <strong>{format(projectEndDate, "MMM dd, yyyy")}</strong>
+              <br />
+              Calendar automatically shows the project start month. Use navigation arrows to view other months within the project timeline.
+            </AlertDescription>
+          </Alert>
+
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <div className="lg:col-span-3">
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Calendar className="w-5 h-5" />
-                    Attendance Calendar
-                  </CardTitle>
-                  <CardDescription>
-                    Track daily attendance. Green = Present, Red = Absent, Gray = Weekend/Holiday
-                  </CardDescription>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="flex items-center gap-2">
+                        <Calendar className="w-5 h-5" />
+                        Attendance Calendar
+                      </CardTitle>
+                      <CardDescription>
+                        Track daily attendance. Green = Present, Red = Absent, Gray = Weekend/Holiday
+                      </CardDescription>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={handlePrevMonth}
+                        disabled={endOfMonth(subMonths(currentDate, 1)) < projectStartDate}
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                      </Button>
+                      <div className="min-w-[140px] text-center">
+                        <span className="text-lg font-semibold">
+                          {format(currentDate, "MMMM yyyy")}
+                        </span>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={handleNextMonth}
+                        disabled={startOfMonth(addMonths(currentDate, 1)) > projectEndDate}
+                      >
+                        <ChevronRight className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
                 </CardHeader>
-                <CardContent>
-                  <CalendarComponent
-                    mode="single"
-                    className="w-full"
-                    modifiers={{
-                      present: (date) => calendarData[date.toISOString().split('T')[0]] === 'present',
-                      absent: (date) => calendarData[date.toISOString().split('T')[0]] === 'absent',
-                      notApplicable: (date) => calendarData[date.toISOString().split('T')[0]] === 'not-applicable'
-                    }}
-                    modifiersClassNames={{
-                      present: 'bg-green-500 text-white hover:bg-green-600',
-                      absent: 'bg-red-500 text-white hover:bg-red-600',
-                      notApplicable: 'bg-gray-200 text-gray-400'
-                    }}
-                  />
+                <CardContent className="p-8">
+                  <div className="bg-card rounded-lg border overflow-hidden">
+                    <div className="grid grid-cols-7 border-b">
+                      {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+                        <div key={day} className="bg-muted p-4 text-center text-sm font-medium text-muted-foreground border-r last:border-r-0">
+                          {day}
+                        </div>
+                      ))}
+                    </div>
+                    
+                    <div className="grid grid-cols-7">
+                      {dateRange.map((date, index) => {
+                        const attendance = getAttendanceForDate(date);
+                        const isCurrentMonth = isSameMonth(date, currentDate);
+                        const isSelected = selectedDate && format(date, "yyyy-MM-dd") === format(selectedDate, "yyyy-MM-dd");
+                        const isTodayDate = isToday(date);
+                        const isInProjectPeriod = isDateInProjectPeriod(date);
+                        
+                        return (
+                          <div
+                            key={format(date, "yyyy-MM-dd")}
+                            className={`
+                              relative h-20 border-r border-b border-border last:border-r-0 cursor-pointer transition-colors
+                              ${isCurrentMonth ? 'bg-card hover:bg-accent' : 'bg-muted/50 text-muted-foreground'}
+                              ${isSelected ? 'ring-2 ring-primary bg-accent' : ''}
+                              ${isTodayDate ? 'ring-1 ring-blue-400' : ''}
+                              ${!isInProjectPeriod && isCurrentMonth ? 'opacity-50' : ''}
+                            `}
+                            onClick={() => handleDateClick(date)}
+                          >
+                            <div className="p-3 h-full flex flex-col">
+                              <div className="flex justify-between items-start mb-2">
+                                <span className={`text-sm font-medium ${isTodayDate ? 'text-blue-500' : isCurrentMonth ? 'text-foreground' : 'text-muted-foreground'}`}>
+                                  {format(date, "d")}
+                                </span>
+                                {isTodayDate && (
+                                  <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                                )}
+                              </div>
+                              
+                              {attendance && isCurrentMonth && isInProjectPeriod && (
+                                <div className="flex-1 flex flex-col justify-center items-center">
+                                  <div className={`text-base font-bold ${getStatusColor(attendance.status)}`}>
+                                    {getStatusIndicator(attendance.status)}
+                                  </div>
+                                  {attendance.comment && (
+                                    <div className="text-xs text-muted-foreground text-center mt-1 truncate w-full">
+                                      {attendance.comment}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                              
+                              {!isInProjectPeriod && isCurrentMonth && (
+                                <div className="flex-1 flex items-center justify-center">
+                                  <div className="text-xs text-muted-foreground">N/A</div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  
+                  <div className="mt-6 flex justify-center gap-6 text-sm">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded flex items-center justify-center text-xs font-bold text-green-600 border border-border bg-card">P</div>
+                      <span className="text-muted-foreground">Present</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded flex items-center justify-center text-xs font-bold text-red-600 border border-border bg-card">A</div>
+                      <span className="text-muted-foreground">Absent</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded flex items-center justify-center text-xs font-bold text-blue-600 border border-border bg-card">NA</div>
+                      <span className="text-muted-foreground">Not Available</span>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             </div>
 
-            <div className="lg:col-span-1">
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>
+                    {selectedDate ? format(selectedDate, "MMMM d, yyyy") : "Select a Date"}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {selectedDate && (
+                    <>
+                      <div className="space-y-3">
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground mb-2">Status</p>
+                          {selectedDateAttendance && isDateInProjectPeriod(selectedDate) ? (
+                            <Badge className={`${selectedDateAttendance.status === 'present' ? 'bg-green-100 text-green-800 border-green-200' : ''}
+                              ${selectedDateAttendance.status === 'absent' ? 'bg-red-100 text-red-800 border-red-200' : ''}
+                              ${selectedDateAttendance.status === 'not-applicable' ? 'bg-blue-100 text-blue-800 border-blue-200' : ''}`}>
+                              {selectedDateAttendance.status.toUpperCase()}
+                            </Badge>
+                          ) : !isDateInProjectPeriod(selectedDate) ? (
+                            <Badge className="bg-gray-100 text-gray-800 border-gray-200">
+                              OUTSIDE PROJECT PERIOD
+                            </Badge>
+                          ) : (
+                            <span className="text-sm text-muted-foreground">No record</span>
+                          )}
+                        </div>
+                        
+                        {selectedDateAttendance?.comment && (
+                          <div>
+                            <p className="text-sm font-medium text-muted-foreground mb-2">Comment</p>
+                            <div className="flex items-start gap-2 p-3 bg-muted rounded-lg border">
+                              <MessageSquare className="w-4 h-4 mt-0.5 text-muted-foreground" />
+                              <p className="text-sm">{selectedDateAttendance.comment}</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {isCurrentProject && selectedDate && isDateInProjectPeriod(selectedDate) ? (
+                        <Button 
+                          onClick={() => setAttendanceDialogOpen(true)}
+                          className="w-full"
+                          size="lg"
+                        >
+                          Mark Attendance
+                        </Button>
+                      ) : (
+                        <div className="w-full p-3 bg-muted rounded-lg border text-center">
+                          <p className="text-sm text-muted-foreground">
+                            {!isCurrentProject 
+                              ? "Attendance marking is only available for active projects"
+                              : "Date is outside the project period"
+                            }
+                          </p>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+
               <Card>
                 <CardHeader>
                   <CardTitle>Monthly Summary</CardTitle>
@@ -345,6 +574,40 @@ const ResourceDetails = () => {
                 </CardContent>
               </Card>
             </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="analytics" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Attendance Rate</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-green-600">{currentData.attendance}%</div>
+                <p className="text-sm text-muted-foreground">Days present</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Total Payments</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">${currentData.totalEarnings.toLocaleString()}</div>
+                <p className="text-sm text-muted-foreground">Project earnings</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Efficiency</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{Math.round((currentData.workedDays / currentData.totalDays) * 100)}%</div>
+                <p className="text-sm text-muted-foreground">Days worked vs planned</p>
+              </CardContent>
+            </Card>
           </div>
         </TabsContent>
       </Tabs>
