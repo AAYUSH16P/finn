@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
@@ -6,7 +5,8 @@ import {
   FolderOpen,
   Users,
   Calculator,
-  TrendingUp
+  TrendingUp,
+  PieChart
 } from "lucide-react";
 import HeroIcon from "../../public/budgeting.png";
 
@@ -24,6 +24,7 @@ import {
 
 const navigationItems = [
   { title: "Dashboard", url: "/", icon: BarChart3 },
+  { title: "Analytics", url: "/analytics", icon: PieChart },
   { title: "Projects", url: "/projects", icon: FolderOpen },
   { title: "Resources", url: "/resources", icon: Users },
   { title: "Rate Calculator", url: "/rate-calculator", icon: Calculator }

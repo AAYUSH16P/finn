@@ -11,6 +11,7 @@ interface Role {
   roleSpecification: string;
   dayRate: string;
   bau: string;
+  delphi: string;
   saiven: string;
   spectrumProfit: string;
   basicRate: string;
@@ -29,6 +30,7 @@ const RoleDialog = ({ open, onOpenChange, onAddRole, existingRole }: RoleDialogP
     roleSpecification: "",
     dayRate: "",
     bau: "",
+    delphi: "",
     saiven: "",
     spectrumProfit: "",
     basicRate: ""
@@ -42,6 +44,7 @@ const RoleDialog = ({ open, onOpenChange, onAddRole, existingRole }: RoleDialogP
         roleSpecification: existingRole.roleSpecification,
         dayRate: existingRole.dayRate,
         bau: existingRole.bau,
+        delphi: existingRole.delphi,
         saiven: existingRole.saiven,
         spectrumProfit: existingRole.spectrumProfit,
         basicRate: existingRole.basicRate
@@ -52,6 +55,7 @@ const RoleDialog = ({ open, onOpenChange, onAddRole, existingRole }: RoleDialogP
         roleSpecification: "",
         dayRate: "",
         bau: "",
+        delphi: "",
         saiven: "",
         spectrumProfit: "",
         basicRate: ""
@@ -89,6 +93,7 @@ const RoleDialog = ({ open, onOpenChange, onAddRole, existingRole }: RoleDialogP
       roleSpecification: "",
       dayRate: "",
       bau: "",
+      delphi: "",
       saiven: "",
       spectrumProfit: "",
       basicRate: ""
@@ -142,21 +147,31 @@ const RoleDialog = ({ open, onOpenChange, onAddRole, existingRole }: RoleDialogP
                 placeholder="0"
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="bau">BAU ($)</Label>
-              <Input
-                id="bau"
-                type="number"
-                value={roleData.bau}
-                onChange={(e) => handleInputChange("bau", e.target.value)}
-                placeholder="0"
-              />
-            </div>
-          </div>
+             <div className="space-y-2">
+               <Label htmlFor="bau">BAU (%)</Label>
+               <Input
+                 id="bau"
+                 type="number"
+                 value={roleData.bau}
+                 onChange={(e) => handleInputChange("bau", e.target.value)}
+                 placeholder="0"
+               />
+             </div>
+           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="saiven">Saiven ($)</Label>
+           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+             <div className="space-y-2">
+               <Label htmlFor="delphi">Delphi (%)</Label>
+               <Input
+                 id="delphi"
+                 type="number"
+                 value={roleData.delphi}
+                 onChange={(e) => handleInputChange("delphi", e.target.value)}
+                 placeholder="0"
+               />
+             </div>
+             <div className="space-y-2">
+               <Label htmlFor="saiven">Saiven (%)</Label>
               <Input
                 id="saiven"
                 type="number"
@@ -165,8 +180,8 @@ const RoleDialog = ({ open, onOpenChange, onAddRole, existingRole }: RoleDialogP
                 placeholder="0"
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="spectrumProfit">Spectrum Profit ($)</Label>
+             <div className="space-y-2">
+               <Label htmlFor="spectrumProfit">Spectrum Profit (%)</Label>
               <Input
                 id="spectrumProfit"
                 type="number"

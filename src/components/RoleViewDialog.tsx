@@ -8,6 +8,7 @@ interface Role {
   roleSpecification: string;
   dayRate: string;
   bau: string;
+  delphi: string;
   saiven: string;
   spectrumProfit: string;
   basicRate: string;
@@ -51,18 +52,22 @@ const RoleViewDialog = ({ open, onOpenChange, role, onEdit }: RoleViewDialogProp
             </div>
             <div className="space-y-2">
               <Label>BAU</Label>
-              <div className="p-2 bg-muted rounded-md">${role.bau}</div>
+              <div className="p-2 bg-muted rounded-md">{role.bau}%</div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label>Delphi</Label>
+              <div className="p-2 bg-muted rounded-md">{role.delphi}%</div>
+            </div>
             <div className="space-y-2">
               <Label>Saiven</Label>
-              <div className="p-2 bg-muted rounded-md">${role.saiven}</div>
+              <div className="p-2 bg-muted rounded-md">{role.saiven}%</div>
             </div>
             <div className="space-y-2">
               <Label>Spectrum Profit</Label>
-              <div className="p-2 bg-muted rounded-md">${role.spectrumProfit}</div>
+              <div className="p-2 bg-muted rounded-md">{role.spectrumProfit}%</div>
             </div>
           </div>
 
