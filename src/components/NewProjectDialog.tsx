@@ -10,15 +10,32 @@ import { Plus, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import RoleDialog from "./RoleDialog";
 
+interface WorkArrangementData {
+  dayRate: string;
+  tolerance: string;
+  tada: string;
+  nearDelivery: string;
+  mcbCrm: string;
+  dabDelphi: string;
+  dabApex: string;
+  dabBigData: string;
+  ws: string;
+  saiven: string;
+  bau: string;
+  spectrumProfit: string;
+  basicRate: string;
+}
+
 interface Role {
   id: string;
   roleName: string;
   roleSpecification: string;
-  dayRate: string;
-  bau: string;
-  saiven: string;
-  spectrumProfit: string;
-  basicRate: string;
+  wfmRemoteFlexibleUK: WorkArrangementData;
+  wfmRemoteFlexibleLanded: WorkArrangementData;
+  onSiteUK: WorkArrangementData;
+  onSiteLanded: WorkArrangementData;
+  remoteUK: WorkArrangementData;
+  returnerRemoteUK: WorkArrangementData;
 }
 
 interface NewProjectDialogProps {

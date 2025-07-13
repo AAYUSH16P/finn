@@ -1,12 +1,10 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { TrendingUp, TrendingDown, DollarSign, Users, FolderOpen, Calculator, ProjectorIcon } from "lucide-react";
+import { TrendingUp, DollarSign, FolderOpen, ProjectorIcon } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Cell } from "recharts";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const Dashboard = () => {
-  // Mock data for charts
   const profitData = [
     { month: "Jan", cir: 45000, acr: 52000, basic: 38000 },
     { month: "Feb", cir: 52000, acr: 61000, basic: 44000 },
